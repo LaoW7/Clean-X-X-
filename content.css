@@ -1,0 +1,159 @@
+/* Limit the allowlist to X's global navigation. The feed and Explore tabs remain usable. */
+html[data-xclean-enabled] :is(
+  header nav:has(a:is([href="/home"], [href="/explore"])),
+  nav:has([data-testid="AppTabBar_Home_Link"]),
+  [data-testid="BottomBar"]
+)
+  :is(a, button, [role="link"], [role="button"]):not(:is(
+    a[href="/home"],
+    a[href="/explore"],
+    [data-testid="AppTabBar_Home_Link"],
+    [data-testid="AppTabBar_Explore_Link"],
+    [data-testid="AppTabBar_Search_Link"]
+  )):not(:has(:is(a[href="/home"], a[href="/explore"]))) {
+  display: none !important;
+}
+
+html[data-xclean-enabled] :is(
+  [data-testid="SideNav_NewTweet_Button"],
+  [data-testid="SideNav_AccountSwitcher_Button"],
+  [data-testid="sidebarColumn"],
+  [data-testid="DMDrawer"],
+  [data-testid="GrokDrawer"],
+  [data-testid="chat-drawer"]
+) {
+  display: none !important;
+}
+
+html[data-xclean-enabled] {
+  --xclean-feed-width: 640px;
+}
+
+/* Let the timeline fit alongside X's own navigation on narrow windows. */
+html[data-xclean-enabled] main:has([data-testid="primaryColumn"]) {
+  min-width: 0 !important;
+}
+
+html[data-xclean-enabled] main > div:has([data-testid="primaryColumn"]),
+html[data-xclean-enabled] main [data-testid="primaryColumn"] {
+  width: 100% !important;
+  max-width: var(--xclean-feed-width) !important;
+  min-width: 0 !important;
+  margin-inline: auto !important;
+}
+
+/* Leave only the navigation's own width when the window is tight. */
+@media (width < 640px) {
+  html[data-xclean-enabled] :where(:has(> main [data-testid="primaryColumn"])) > header[role="banner"] {
+    flex-grow: 0 !important;
+  }
+
+  html[data-xclean-enabled] :where(:has(> header[role="banner"])) > main:has([data-testid="primaryColumn"]) {
+    flex: 1 1 0px !important;
+  }
+}
+
+/* Balance the space on both sides, leaving room for X's icon rail. */
+@media (min-width: 640px) {
+  html[data-xclean-enabled] :where(:has(> main [data-testid="primaryColumn"])) > header[role="banner"] {
+    flex: 1 1 0px !important;
+    min-width: 0 !important;
+  }
+
+  html[data-xclean-enabled] :where(:has(> header[role="banner"])) > main:has([data-testid="primaryColumn"]) {
+    --xclean-feed-span: min(var(--xclean-feed-width), calc(100% - 144px));
+    flex: 0 0 var(--xclean-feed-span) !important;
+    margin-inline: auto calc((100% - var(--xclean-feed-span)) / 2) !important;
+  }
+}
+
+/* Keep X's search form and suggestions in the space beside the centered feed. */
+@media (min-width: 1080px) {
+  html[data-xclean-enabled] main:has([data-testid="primaryColumn"]):not(:has([data-testid="primaryColumn"] form[role="search"]))
+    [data-testid="sidebarColumn"]:has(form[role="search"]) {
+    display: flex !important;
+    position: fixed !important;
+    inset-block-start: 8px !important;
+    inset-inline-start: calc(50% + var(--xclean-feed-width) / 2 + 16px) !important;
+    inline-size: min(350px, calc(50% - var(--xclean-feed-width) / 2 - 32px)) !important;
+    min-inline-size: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    z-index: 2;
+  }
+
+  /* Remove the sidebar's sticky offsets, which also account for hidden modules. */
+  html[data-xclean-enabled] [data-testid="sidebarColumn"] :has(form[role="search"]) {
+    position: static !important;
+    transform: none !important;
+    min-block-size: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  html[data-xclean-enabled] [data-testid="sidebarColumn"] :is(:has(form[role="search"]), form[role="search"]) {
+    inline-size: 100% !important;
+    min-inline-size: 0 !important;
+    max-inline-size: 100% !important;
+  }
+
+  html[data-xclean-enabled] [data-testid="sidebarColumn"] form[role="search"] input {
+    min-inline-size: 0 !important;
+    max-inline-size: 100% !important;
+  }
+
+  html[data-xclean-enabled] [data-testid="sidebarColumn"] :not(:is(
+    form[role="search"],
+    form[role="search"] *,
+    [id^="typeaheadDropdown"],
+    [id^="typeaheadDropdown"] *,
+    :has(form[role="search"], [id^="typeaheadDropdown"])
+  )) {
+    display: none !important;
+  }
+}
+
+html[data-xclean-enabled] [data-testid="cellInnerDiv"]:has(
+  [data-testid="placementTracking"] [data-testid="tweet"],
+  [data-testid="tweet"] [data-testid="promotedIndicator"]
+),
+html[data-xclean-enabled] [data-testid="placementTracking"]:has([data-testid="tweet"]),
+html[data-xclean-enabled] [data-testid="tweet"]:has([data-testid="promotedIndicator"]) {
+  display: none !important;
+}
+
+[data-xclean-card-link],
+html[data-xclean-text-links] [data-testid="primaryColumn"] [data-testid="tweet"]
+  [data-xclean-card-preview]:not(:is([role="dialog"], #layers) *) {
+  display: none !important;
+}
+
+html[data-xclean-text-links] [data-testid="primaryColumn"] [data-testid="tweet"]
+  [data-xclean-card-link]:not(:is([role="dialog"], #layers) *) {
+  display: block !important;
+  width: fit-content;
+  max-width: 100%;
+  margin-block: 4px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: inherit;
+  text-decoration: underline;
+}
+
+html[data-xclean-media="hidden"] [data-testid="primaryColumn"]
+  [data-testid="tweet"] [data-xclean-attachment]:not(:is([role="dialog"], #layers) *) {
+  display: none !important;
+}
+
+html[data-xclean-media="compact"] [data-testid="primaryColumn"]
+  [data-testid="tweet"] [data-xclean-attachment]:not(:is([role="dialog"], #layers) *) {
+  align-self: flex-start !important;
+  max-width: min(192px, 100%) !important;
+  max-height: 144px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}

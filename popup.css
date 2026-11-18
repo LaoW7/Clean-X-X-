@@ -1,0 +1,145 @@
+:root {
+  color-scheme: light dark;
+  --paper: #f7f8f4;
+  --ink: #192620;
+  --muted: #516259;
+  --line: #d9e0d9;
+  --accent: #235f4b;
+  --selected: #e3eee7;
+  --switch-off: #6e7c73;
+  --error: #9c3528;
+  font: 14px/1.5 "Segoe UI", "Microsoft YaHei UI", system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #18221e;
+    --ink: #eef4ef;
+    --muted: #b3c4ba;
+    --line: #3b4c42;
+    --accent: #97d9b7;
+    --selected: #263d31;
+    --switch-off: #55645b;
+    --error: #ffb4a9;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  width: 300px;
+  margin: 0;
+  padding: 18px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 700;
+}
+
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 42px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+#enabled {
+  appearance: none;
+  display: grid;
+  align-items: center;
+  width: 38px;
+  height: 22px;
+  margin: 0;
+  padding: 2px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--switch-off);
+  cursor: inherit;
+}
+
+#enabled:checked { background: var(--accent); }
+
+#enabled::before {
+  content: '';
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+}
+
+#enabled:checked::before {
+  justify-self: end;
+  background: var(--paper);
+}
+
+fieldset {
+  min-width: 0;
+  margin: 9px 0 0;
+  padding: 9px 0 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}
+
+fieldset:disabled { opacity: 0.58; }
+
+legend {
+  padding: 0 8px 0 0;
+  font-weight: 600;
+}
+
+.choice {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 37px;
+  margin-bottom: 4px;
+  padding: 6px 9px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.choice:has(input:checked) {
+  border-color: var(--line);
+  background: var(--selected);
+}
+
+.choice:has(input:disabled) { cursor: default; }
+
+.choice input {
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+p {
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+#error { color: var(--error); }
+
+@media (forced-colors: active) {
+  #enabled { appearance: auto; }
+  #enabled::before { content: none; }
+}

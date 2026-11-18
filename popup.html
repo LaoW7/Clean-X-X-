@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>清简 X</title>
+  <link rel="stylesheet" href="popup.css">
+  <script src="settings.js" defer></script>
+  <script src="popup.js" defer></script>
+</head>
+<body>
+  <header>
+    <img src="icons/icon-48.png" width="36" height="36" alt="">
+    <h1>清简 X</h1>
+  </header>
+  <form>
+    <label class="toggle-row">
+      <span>启用精简模式</span>
+      <input type="checkbox" id="enabled" name="enabled" role="switch" checked disabled>
+    </label>
+    <fieldset id="media-options" aria-describedby="media-note" disabled>
+      <legend>时间线媒体</legend>
+      <label class="choice">
+        <input type="radio" name="media" value="hidden" checked>
+        <span>仅详情页显示</span>
+      </label>
+      <label class="choice">
+        <input type="radio" name="media" value="compact">
+        <span>显示缩略图</span>
+      </label>
+      <label class="choice">
+        <input type="radio" name="media" value="original">
+        <span>保持原尺寸</span>
+      </label>
+      <p id="media-note">适用于帖子里的图片、GIF 和视频。点开帖子可查看完整媒体。</p>
+    </fieldset>
+    <p id="error" role="status" hidden></p>
+  </form>
+</body>
+</html>
