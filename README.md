@@ -19,7 +19,7 @@ Open **清简 X** from Chrome’s extensions menu and choose an option under **�
 | Option in the popup | What it does |
 | --- | --- |
 | **仅详情页显示** — Show only in post details (default) | Hides images, GIFs, and videos in the timeline. Open the post body or click its timestamp to see the media. |
-| **显示缩略图** — Show thumbnails | Limits the media preview to about 192 × 144 pixels. Tall images and multi-image previews may be clipped. |
+| **显示缩略图** — Show thumbnails | Fits up to four proportional thumbnails in a compact preview. GIFs and videos show a still image when available. Select a thumbnail or the media link to open the post. |
 | **保持原尺寸** — Keep original size | Uses X’s original layout for images, GIFs, and videos. External website previews still appear as text links in the timeline while Clean Mode is on. |
 
 ## Install from GitHub
@@ -43,6 +43,7 @@ After downloading an update, replace the files in your local extension folder, c
 | --- | --- |
 | [manifest.json](manifest.json) | Manifest V3 configuration, supported sites, and permissions |
 | [content.js](content.js) and [content.css](content.css) | Layout, content filtering, and link previews |
+| [media-thumbnails.js](media-thumbnails.js) | Proportional image and video thumbnails for the timeline |
 | [timeline-position.js](timeline-position.js) | Restores the timeline position when returning from a post |
 | [popup.html](popup.html), [popup.js](popup.js), and [settings.js](settings.js) | Popup controls and local preferences |
 

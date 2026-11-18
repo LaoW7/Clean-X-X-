@@ -19,7 +19,7 @@
 | 选项 | 效果 |
 | --- | --- |
 | **仅详情页显示（默认）** | 隐藏时间线里的图片、GIF 和视频。点开帖子正文或点击时间戳即可查看完整媒体。 |
-| **显示缩略图** | 将媒体预览区域限制在约 192 × 144 像素以内。竖图和多图预览可能被裁切。 |
+| **显示缩略图** | 在紧凑区域中按原比例显示最多四张小图。GIF 和视频有封面时显示静态封面。点击缩略图或「查看媒体」可打开帖子。 |
 | **保持原尺寸** | 图片、GIF 和视频按 X 的默认方式显示。开启精简模式时，时间线里的外部网页预览仍会显示为文字链接。 |
 
 ## 从 GitHub 安装
@@ -43,6 +43,7 @@
 | --- | --- |
 | [manifest.json](manifest.json) | Manifest V3 配置、适用网站和权限 |
 | [content.js](content.js) 和 [content.css](content.css) | 布局、内容过滤和链接预览 |
+| [media-thumbnails.js](media-thumbnails.js) | 按比例显示时间线里的图片和视频封面 |
 | [timeline-position.js](timeline-position.js) | 从帖子详情返回时恢复时间线位置 |
 | [popup.html](popup.html)、[popup.js](popup.js) 和 [settings.js](settings.js) | 设置面板和本地偏好 |
 

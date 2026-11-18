@@ -14,7 +14,10 @@
     '[data-testid="tweetPhoto"]',
     '[data-testid="videoPlayer"]',
     '[data-testid="videoComponent"]',
+    '[data-testid="previewInterstitial"]',
     'img[src^="https://pbs.twimg.com/media/"]',
+    'img[src*="_video_thumb/"]',
+    'video[poster]',
     'a[href*="/status/"]:is([href*="/photo/"], [href*="/video/"]):has(img, video)',
   ].join(', ');
   const preservedSelector = [
@@ -25,6 +28,7 @@
     '[data-testid="card.wrapper"]',
     `[${cardPreview}]`,
     `[${cardLink}]`,
+    '[data-xclean-thumbnails]',
     '[data-testid^="cardPoll"]',
     '[data-testid="ArticleCoverImage"]',
     '[data-testid="reply"]',
@@ -127,7 +131,7 @@
 
     for (const media of post.querySelectorAll(mediaSelector)) {
       if (media.closest(postSelector) === post &&
-          !media.closest(`${textSelector}, [${cardPreview}]`)) {
+          !media.closest(`${textSelector}, [${cardPreview}], [data-xclean-thumbnails]`)) {
         blocks.add(mediaBlock(media, post));
       }
     }
@@ -138,6 +142,12 @@
       }
     }
     for (const block of blocks) block.setAttribute('data-xclean-attachment', '');
+
+    if (root.getAttribute('data-xclean-media') === 'compact') {
+      const allBlocks = [...blocks];
+      const outerBlocks = allBlocks.filter(block => !allBlocks.some(other => other !== block && other.contains(block)));
+      cleanXThumbnails.update(post, outerBlocks);
+    }
   }
 
   function updatePost(post) {
@@ -157,7 +167,10 @@
 
   const observer = new MutationObserver((records) => {
     for (const record of records) {
-      if (record.target.hasAttribute?.(cardLink)) continue;
+      if (record.attributeName === 'style' &&
+          (root.getAttribute('data-xclean-media') !== 'compact' ||
+            !record.target.style?.backgroundImage.includes('pbs.'))) continue;
+      if (record.target.closest?.(`[${cardLink}], [data-xclean-thumbnails]`)) continue;
       const post = record.target.closest?.(postSelector);
       if (post) pendingPosts.add(post);
       if (record.type === 'attributes' && ['data-testid', 'role'].includes(record.attributeName)) {
@@ -187,7 +200,7 @@
     const simplifyTimeline = settings.enabled && isTimeline(location.pathname);
     const shouldFilterMedia = simplifyTimeline && settings.media !== 'original';
     const refreshPosts = simplifyTimeline && (!observing ||
-      (shouldFilterMedia && !root.hasAttribute('data-xclean-media')));
+      (shouldFilterMedia && root.getAttribute('data-xclean-media') !== settings.media));
 
     root.toggleAttribute('data-xclean-enabled', settings.enabled);
     root.toggleAttribute('data-xclean-text-links', simplifyTimeline);
@@ -204,7 +217,7 @@
         childList: true,
         subtree: true,
         attributes: true,
-        attributeFilter: ['data-testid', 'href', 'role', 'src', 'aria-label', 'title'],
+        attributeFilter: ['data-testid', 'href', 'role', 'src', 'srcset', 'poster', 'style', 'aria-label', 'title'],
       });
     } else {
       observer.disconnect();
