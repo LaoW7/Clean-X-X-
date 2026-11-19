@@ -4,6 +4,7 @@ const cleanXThumbnails = (() => {
   const permalinkSelector = 'a[href*="/status/"]:has(time)';
   const previewUrl = /^https:\/\/pbs\.(?:twimg|x)\.com\/(?:media|(?:amplify|ext_tw|tweet)_video_thumb)\//i;
   const recentSources = new Map();
+  const failedUrls = new Set();
   const renderedGrids = new WeakMap();
 
   function sourceKey(url) {
@@ -19,13 +20,30 @@ const cleanXThumbnails = (() => {
     for (const element of elements) {
       const background = element.style.backgroundImage.match(/url\(["']?(https:\/\/[^"')]+)["']?\)/)?.[1];
       const responsive = element.srcset?.trim().split(/[\s,]/)[0];
+      const alt = element.alt?.trim() || '';
       for (const url of [element.currentSrc, element.src, responsive, element.poster, background]) {
         if (!previewUrl.test(url ?? '')) continue;
         const key = sourceKey(url);
-        if (!sources.has(key)) sources.set(key, url);
+        const existing = sources.get(key);
+        const preferredUrl = !existing || (failedUrls.has(existing.url) && !failedUrls.has(url))
+          ? url : existing.url;
+        sources.set(key, { url: preferredUrl, alt: existing?.alt || alt });
       }
     }
     return [...sources.values()].slice(0, 4);
+  }
+
+  function reconcileSources(saved, observed) {
+    const previous = new Set(saved.map(({ url }) => sourceKey(url)));
+    if (observed.some(({ url }) => !previous.has(sourceKey(url)))) return observed;
+
+    const current = new Map(observed.map(source => [sourceKey(source.url), source]));
+    return saved.map(source => {
+      const replacement = current.get(sourceKey(source.url));
+      if (!replacement) return source;
+      const url = failedUrls.has(source.url) && !failedUrls.has(replacement.url) ? replacement.url : source.url;
+      return { url, alt: replacement.alt || source.alt };
+    });
   }
 
   function makeTile(post, href, source) {
@@ -49,19 +67,25 @@ const cleanXThumbnails = (() => {
 
     if (source) {
       const image = document.createElement('img');
-      image.alt = label.textContent;
+      image.alt = source.alt || label.textContent;
+      image.loading = 'lazy';
       image.decoding = 'async';
-      image.hidden = true;
+      image.setAttribute('data-xclean-thumbnail-pending', '');
+      image.setAttribute('aria-hidden', 'true');
       image.addEventListener('load', () => {
-        image.hidden = false;
+        failedUrls.delete(source.url);
+        image.removeAttribute('data-xclean-thumbnail-pending');
+        image.removeAttribute('aria-hidden');
         label.hidden = true;
-      });
+      }, { once: true });
       image.addEventListener('error', () => {
+        failedUrls.add(source.url);
+        if (failedUrls.size > 128) failedUrls.delete(failedUrls.values().next().value);
         image.hidden = true;
         label.hidden = false;
-      });
+      }, { once: true });
       tile.append(image);
-      image.src = source;
+      image.src = source.url;
     }
     return tile;
   }
@@ -77,9 +101,7 @@ const cleanXThumbnails = (() => {
       const existing = renderedGrids.get(grid);
       const key = postUrl && `${postUrl}#${index}`;
       const saved = recentSources.get(key) ?? (existing?.postUrl === postUrl ? existing.sources : []);
-      const observed = collectSources(block);
-      const sources = observed.every(url => saved.some(savedUrl => sourceKey(savedUrl) === sourceKey(url)))
-        ? saved : observed;
+      const sources = reconcileSources(saved, collectSources(block));
 
       // Keep the still frame when X replaces the preview with an inline player.
       if (key && sources.length) {
@@ -88,7 +110,8 @@ const cleanXThumbnails = (() => {
         if (recentSources.size > 128) recentSources.delete(recentSources.keys().next().value);
       }
 
-      if (existing?.postUrl !== postUrl || sources.join('\n') !== existing?.sources.join('\n')) {
+      if (existing?.postUrl !== postUrl || sources.length !== existing.sources.length ||
+          sources.some(({ url, alt }, index) => url !== existing.sources[index].url || alt !== existing.sources[index].alt)) {
         grid.replaceChildren(...(sources.length ? sources : [null]).map(source => makeTile(post, postUrl, source)));
         renderedGrids.set(grid, { postUrl, sources });
       }

@@ -2,6 +2,7 @@ const form = document.querySelector('form');
 const enabled = document.querySelector('#enabled');
 const mediaOptions = document.querySelector('#media-options');
 const errorMessage = document.querySelector('#error');
+const latestChanges = new Map();
 let settings = cleanXSettings.defaults;
 
 function render() {
@@ -10,32 +11,39 @@ function render() {
   form.elements.media.value = settings.media;
 }
 
-function showError(message) {
-  errorMessage.textContent = message;
-  errorMessage.hidden = false;
-}
-
 async function init() {
   try {
     settings = await cleanXSettings.read();
     enabled.disabled = false;
     render();
   } catch {
-    showError('无法读取设置，请重新打开扩展。');
+    errorMessage.textContent = '无法读取设置，请重新打开扩展。';
     return;
   }
 
   form.addEventListener('change', async ({ target }) => {
-    errorMessage.hidden = true;
+    const name = target.name;
     const value = target === enabled ? target.checked : target.value;
+    const previousValue = settings[name];
+    const change = Symbol();
+    latestChanges.set(name, change);
+    errorMessage.textContent = '';
+
+    // Render the user's choice immediately and send each write before the popup can close.
+    settings = { ...settings, [name]: value };
+    render();
 
     try {
-      await chrome.storage.local.set({ [target.name]: value });
-      settings = cleanXSettings.normalize({ ...settings, [target.name]: value });
-      render();
+      await chrome.storage.local.set({ [name]: value });
     } catch {
+      if (latestChanges.get(name) !== change) return;
+      const saved = await cleanXSettings.read().catch(() => null);
+      if (latestChanges.get(name) !== change) return;
+
+      // Recover only the failed field so a pending change to the other field stays visible.
+      settings = { ...settings, [name]: saved?.[name] ?? previousValue };
       render();
-      showError('设置未保存，请重试。');
+      errorMessage.textContent = '设置未保存，请重试。';
     }
   });
 }

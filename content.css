@@ -169,6 +169,7 @@ html[data-xclean-media="compact"] [data-testid="primaryColumn"] [data-testid="tw
 }
 
 [data-xclean-thumbnails] > :is(a, span) {
+  position: relative;
   width: fit-content;
   min-width: 0;
   max-width: 100%;
@@ -185,6 +186,17 @@ html[data-xclean-media="compact"] [data-testid="primaryColumn"] [data-testid="tw
 
 [data-xclean-thumbnails]:has(> :nth-child(2)) img {
   max-height: 70px;
+}
+
+/* A tiny layout box lets the browser lazy-load while the text fallback is visible. */
+[data-xclean-thumbnails] img[data-xclean-thumbnail-pending] {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 [data-xclean-thumbnails] [hidden] {

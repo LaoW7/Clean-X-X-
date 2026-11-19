@@ -1,9 +1,12 @@
 (() => {
   const root = document.documentElement;
+  const columnSelector = '[data-testid="primaryColumn"]';
   const postSelector = '[data-testid="tweet"]';
   const textSelector = '[data-testid="tweetText"]';
   const cardPreview = 'data-xclean-card-preview';
   const cardLink = 'data-xclean-card-link';
+  const ownPreviewSelector = `[${cardLink}], [data-xclean-thumbnails]`;
+  const watchedAttributes = ['data-testid', 'href', 'role', 'src', 'srcset', 'poster', 'aria-label', 'title'];
   const cardSelector = [
     '[data-testid="card.wrapper"]',
     '[data-testid^="card.layoutLarge"]',
@@ -42,6 +45,7 @@
   let settings = cleanXSettings.defaults;
   let observing = false;
   let frame = 0;
+  let columns = new Set();
   const pendingPosts = new Set();
 
   function externalLink(element) {
@@ -151,40 +155,75 @@
   }
 
   function updatePost(post) {
-    if (!post.isConnected || !post.closest('[data-testid="primaryColumn"]') ||
+    if (!post.isConnected || !post.closest(columnSelector) ||
         post.closest('[role="dialog"], #layers')) return;
 
     simplifyCards(post);
     if (root.hasAttribute('data-xclean-media')) markMedia(post);
   }
 
-  function queuePosts(node) {
-    if (!(node instanceof Element)) return;
-    const post = node.closest(postSelector);
-    if (post) pendingPosts.add(post);
+  function queuePostTree(node) {
+    if (!(node instanceof Element) || node.matches(ownPreviewSelector)) return;
+    if (node.matches(postSelector)) pendingPosts.add(node);
     for (const descendant of node.querySelectorAll(postSelector)) pendingPosts.add(descendant);
+  }
+
+  function schedulePosts() {
+    if (!pendingPosts.size || frame) return;
+    frame = requestAnimationFrame(() => {
+      frame = 0;
+      for (const post of pendingPosts) updatePost(post);
+      pendingPosts.clear();
+    });
   }
 
   const observer = new MutationObserver((records) => {
     for (const record of records) {
-      if (record.attributeName === 'style' &&
-          (root.getAttribute('data-xclean-media') !== 'compact' ||
-            !record.target.style?.backgroundImage.includes('pbs.'))) continue;
-      if (record.target.closest?.(`[${cardLink}], [data-xclean-thumbnails]`)) continue;
+      if (record.attributeName === 'style' && !record.target.style?.backgroundImage.includes('pbs.')) continue;
+      if (record.target.closest?.(ownPreviewSelector)) continue;
+      if (record.addedNodes.length && !record.removedNodes.length &&
+          Array.from(record.addedNodes).every(node => node instanceof Element && node.matches(ownPreviewSelector))) continue;
       const post = record.target.closest?.(postSelector);
       if (post) pendingPosts.add(post);
       if (record.type === 'attributes' && ['data-testid', 'role'].includes(record.attributeName)) {
-        queuePosts(record.target);
+        queuePostTree(record.target);
       }
-      for (const node of record.addedNodes) queuePosts(node);
+      for (const node of record.addedNodes) queuePostTree(node);
     }
+    schedulePosts();
+  });
 
-    if (pendingPosts.size && !frame) {
-      frame = requestAnimationFrame(() => {
-        frame = 0;
-        for (const post of pendingPosts) updatePost(post);
-        pendingPosts.clear();
-      });
+  function observeColumns() {
+    observer.disconnect();
+    const attributeFilter = root.getAttribute('data-xclean-media') === 'compact'
+      ? [...watchedAttributes, 'alt', 'style'] : watchedAttributes;
+    for (const column of columns) {
+      observer.observe(column, { childList: true, subtree: true, attributes: true, attributeFilter });
+    }
+  }
+
+  function refreshPosts() {
+    for (const column of columns) {
+      for (const post of column.querySelectorAll(postSelector)) updatePost(post);
+    }
+  }
+
+  function syncColumns() {
+    const current = new Set(document.querySelectorAll(columnSelector));
+    if (current.size === columns.size && [...current].every(column => columns.has(column))) return;
+    columns = current;
+    observeColumns();
+    refreshPosts();
+  }
+
+  // Track which columns X mounts. Detailed mutations only matter within those columns.
+  const columnTracker = new MutationObserver(records => {
+    if ([...columns].some(column => !column.isConnected || !column.matches(columnSelector)) ||
+        records.some(record => record.type === 'attributes'
+          ? record.target.matches(columnSelector) && !columns.has(record.target)
+          : !record.target.closest?.(columnSelector) && Array.from(record.addedNodes).some(node =>
+            node instanceof Element && (node.matches(columnSelector) || node.querySelector(columnSelector))))) {
+      syncColumns();
     }
   });
 
@@ -198,31 +237,38 @@
 
   function apply() {
     const simplifyTimeline = settings.enabled && isTimeline(location.pathname);
-    const shouldFilterMedia = simplifyTimeline && settings.media !== 'original';
-    const refreshPosts = simplifyTimeline && (!observing ||
-      (shouldFilterMedia && root.getAttribute('data-xclean-media') !== settings.media));
+    const mediaMode = simplifyTimeline && settings.media !== 'original' ? settings.media : null;
+    const previousMedia = root.getAttribute('data-xclean-media');
 
     root.toggleAttribute('data-xclean-enabled', settings.enabled);
     root.toggleAttribute('data-xclean-text-links', simplifyTimeline);
-    if (shouldFilterMedia) root.setAttribute('data-xclean-media', settings.media);
-    else root.removeAttribute('data-xclean-media');
-
-    if (refreshPosts) {
-      for (const post of document.querySelectorAll(postSelector)) updatePost(post);
+    if (mediaMode !== previousMedia) {
+      if (mediaMode) root.setAttribute('data-xclean-media', mediaMode);
+      else root.removeAttribute('data-xclean-media');
     }
-    if (simplifyTimeline === observing) return;
+
+    if (simplifyTimeline === observing) {
+      if (simplifyTimeline && mediaMode !== previousMedia) {
+        observeColumns();
+        refreshPosts();
+      }
+      return;
+    }
     observing = simplifyTimeline;
     if (observing) {
-      observer.observe(root, {
+      columnTracker.observe(root, {
         childList: true,
         subtree: true,
         attributes: true,
-        attributeFilter: ['data-testid', 'href', 'role', 'src', 'srcset', 'poster', 'style', 'aria-label', 'title'],
+        attributeFilter: ['data-testid'],
       });
+      syncColumns();
     } else {
+      columnTracker.disconnect();
       observer.disconnect();
       cancelAnimationFrame(frame);
       frame = 0;
+      columns.clear();
       pendingPosts.clear();
     }
   }

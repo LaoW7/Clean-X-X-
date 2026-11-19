@@ -1,32 +1,28 @@
 function trackCleanXTimelinePosition({ enabled, isTimeline, isDetail, onPageChange }) {
   const historyEntries = window.navigation;
+  const postSelector = '[data-testid="primaryColumn"] [data-testid="tweet"]:not(:is(#layers, [role="dialog"]) *)';
+  const permalinkSelector = 'a[href*="/status/"]:has(time)';
   const positions = new Map();
   let clickedPosition;
   let savedBeforeCommit;
   let lastPosition;
   let restoreTimer;
 
-  function timelinePosts() {
-    return document.querySelectorAll(
-      '[data-testid="primaryColumn"] [data-testid="tweet"]:not(:is(#layers, [role="dialog"]) *)',
-    );
-  }
-
-  function postId(post) {
-    const permalink = post.querySelector('a[href*="/status/"]:has(time)');
+  function postId(permalink) {
     return permalink?.pathname.match(/\/status\/(\d+)(?:\/|$)/)?.[1];
   }
 
   function capture() {
-    const posts = timelinePosts();
+    const posts = document.querySelectorAll(postSelector);
     if (!posts.length) return;
     const y = window.scrollY;
     const anchors = [];
     if (y > 1) {
       for (const post of posts) {
         const rect = post.getBoundingClientRect();
-        if (rect.bottom <= 0 || rect.top >= window.innerHeight || !rect.height) continue;
-        const id = postId(post);
+        if (rect.bottom <= 0 || rect.top >= window.innerHeight || !rect.height ||
+            getComputedStyle(post).visibility !== 'visible') continue;
+        const id = postId(post.querySelector(permalinkSelector));
         if (id) anchors.push({ id, top: rect.top });
       }
     }
@@ -36,12 +32,11 @@ function trackCleanXTimelinePosition({ enabled, isTimeline, isDetail, onPageChan
 
   function remember(entry) {
     const click = clickedPosition;
-    const spot = click?.key === entry.key && performance.now() - click.time < 1000
-      ? click.spot
-      : capture();
-    if (!spot) return;
-    lastPosition = { ...spot, url: entry.url };
+    const recentClick = click?.key === entry.key && performance.now() - click.time < 1000;
+    const spot = (recentClick ? click.spot : undefined) ?? capture();
     positions.delete(entry.key);
+    lastPosition = spot && { ...spot, url: entry.url };
+    if (!lastPosition) return;
     positions.set(entry.key, lastPosition);
     if (positions.size > 16) positions.delete(positions.keys().next().value);
   }
@@ -51,33 +46,49 @@ function trackCleanXTimelinePosition({ enabled, isTimeline, isDetail, onPageChan
     restoreTimer = undefined;
   }
 
+  function findAnchorDelta(anchors, selector) {
+    if (!selector) return;
+    let bestIndex = anchors.length;
+    let delta;
+
+    for (const permalink of document.querySelectorAll(selector)) {
+      const id = postId(permalink);
+      const index = anchors.findIndex(anchor => anchor.id === id);
+      if (index < 0 || index >= bestIndex) continue;
+
+      const post = permalink.closest(postSelector);
+      if (!post || post.querySelector(permalinkSelector) !== permalink) continue;
+      const rect = post.getBoundingClientRect();
+      if (!rect.height || getComputedStyle(post).visibility !== 'visible') continue;
+
+      delta = rect.top - anchors[index].top;
+      if (index === 0) break;
+      bestIndex = index;
+    }
+    return delta;
+  }
+
   function restore(position) {
     const deadline = performance.now() + 3000;
+    // Only query the saved post links while the timeline is remounting.
+    const anchorSelector = position.anchors.map(({ id }) => `${postSelector} a[href*="/status/${id}"]:has(time)`).join(', ');
     let alignedSince;
 
     function attempt() {
       const now = performance.now();
       if (!enabled() || now >= deadline) return stopRestoring();
 
-      const posts = timelinePosts();
-      if (posts.length) {
-        const candidates = new Map();
-        for (const post of posts) {
-          const id = postId(post);
-          if (id && !candidates.has(id)) candidates.set(id, post);
-        }
-        const anchor = position.anchors.find(({ id }) => candidates.get(id)?.getClientRects().length);
+      const scrollable = document.scrollingElement;
+      if (scrollable && document.querySelector(postSelector)) {
+        const delta = findAnchorDelta(position.anchors, anchorSelector);
         const y = window.scrollY;
-        const target = anchor
-          ? y + candidates.get(anchor.id).getBoundingClientRect().top - anchor.top
-          : position.y;
-        const scrollable = document.scrollingElement;
+        const target = delta === undefined ? position.y : y + delta;
         const max = Math.max(0, scrollable.scrollHeight - scrollable.clientHeight);
         const clamped = Math.max(0, Math.min(max, target));
 
         // Moving to the available offset also lets X remount off-screen posts.
         if (Math.abs(y - clamped) > 1) window.scrollTo({ top: clamped, behavior: 'instant' });
-        if ((anchor || !position.anchors.length) && target <= max + 1 && Math.abs(y - clamped) <= 1) {
+        if ((delta !== undefined || !position.anchors.length) && target <= max + 1 && Math.abs(y - clamped) <= 1) {
           alignedSince ??= now;
           if (now - alignedSince >= 400) return stopRestoring();
         } else {
@@ -97,11 +108,12 @@ function trackCleanXTimelinePosition({ enabled, isTimeline, isDetail, onPageChan
     clickedPosition = undefined;
     if (!enabled() || !isTimeline(location.pathname) || event.button !== 0 ||
         event.ctrlKey || event.metaKey || event.shiftKey || event.altKey ||
-        !event.target.closest?.('[data-testid="primaryColumn"] [data-testid="tweet"]')) return;
+        !event.target.closest?.(postSelector)) return;
 
     const control = event.target.closest('a[href], button, [role="button"]');
     if (control && (control.origin !== location.origin || !isDetail(control.pathname))) return;
-    clickedPosition = { key: historyEntries.currentEntry.key, time: performance.now(), spot: capture() };
+    const entry = historyEntries.currentEntry;
+    if (entry) clickedPosition = { key: entry.key, time: performance.now(), spot: capture() };
   }, true);
 
   historyEntries.addEventListener('navigate', ({ destination }) => {
@@ -115,8 +127,8 @@ function trackCleanXTimelinePosition({ enabled, isTimeline, isDetail, onPageChan
 
   historyEntries.addEventListener('currententrychange', ({ from, navigationType }) => {
     const entry = historyEntries.currentEntry;
-    if (!from?.url || from.url === entry.url) return onPageChange();
-    stopRestoring();
+    if (from?.key !== entry?.key || from?.url !== entry?.url) stopRestoring();
+    if (!from?.url || !entry?.url || from.url === entry.url) return onPageChange();
     const oldPath = new URL(from.url).pathname;
     const newPath = location.pathname;
 

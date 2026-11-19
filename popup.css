@@ -137,7 +137,12 @@ p {
   font-size: 12px;
 }
 
-#error { color: var(--error); }
+#error {
+  margin: 0;
+  color: var(--error);
+}
+
+#error:not(:empty) { margin-top: 9px; }
 
 @media (forced-colors: active) {
   #enabled { appearance: auto; }
