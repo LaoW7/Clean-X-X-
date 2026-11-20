@@ -16,8 +16,13 @@
   <form>
     <label class="toggle-row">
       <span>启用精简模式</span>
-      <input type="checkbox" id="enabled" name="enabled" role="switch" checked disabled>
+      <input class="mode-switch" type="checkbox" id="enabled" name="enabled" role="switch" checked disabled>
     </label>
+    <label class="toggle-row work-row">
+      <span>工作模式</span>
+      <input class="mode-switch" type="checkbox" id="work-mode" name="workMode" role="switch" aria-describedby="work-mode-note" disabled>
+    </label>
+    <p id="work-mode-note">技术资讯外观，时间线以正文和链接为主。</p>
     <fieldset id="media-options" aria-describedby="media-note" disabled>
       <legend>时间线媒体</legend>
       <label class="choice">

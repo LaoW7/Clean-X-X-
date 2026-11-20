@@ -57,7 +57,14 @@ h1 {
   cursor: pointer;
 }
 
-#enabled {
+.work-row {
+  border-top: 1px solid var(--line);
+  margin-top: 2px;
+}
+
+#work-mode-note { margin: 0 0 12px; }
+
+.mode-switch {
   appearance: none;
   display: grid;
   align-items: center;
@@ -71,9 +78,9 @@ h1 {
   cursor: inherit;
 }
 
-#enabled:checked { background: var(--accent); }
+.mode-switch:checked { background: var(--accent); }
 
-#enabled::before {
+.mode-switch::before {
   content: '';
   width: 16px;
   height: 16px;
@@ -81,7 +88,7 @@ h1 {
   background: #fff;
 }
 
-#enabled:checked::before {
+.mode-switch:checked::before {
   justify-self: end;
   background: var(--paper);
 }
@@ -145,6 +152,6 @@ p {
 #error:not(:empty) { margin-top: 9px; }
 
 @media (forced-colors: active) {
-  #enabled { appearance: auto; }
-  #enabled::before { content: none; }
+  .mode-switch { appearance: auto; }
+  .mode-switch::before { content: none; }
 }

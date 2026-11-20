@@ -1,9 +1,10 @@
 const cleanXSettings = Object.freeze({
-  defaults: Object.freeze({ enabled: true, media: 'hidden' }),
+  defaults: Object.freeze({ enabled: true, workMode: false, media: 'hidden' }),
 
-  normalize({ enabled, media }) {
+  normalize({ enabled, workMode, media }) {
     return {
       enabled: enabled !== false,
+      workMode: workMode === true,
       media: ['hidden', 'compact', 'original'].includes(media) ? media : 'hidden',
     };
   },

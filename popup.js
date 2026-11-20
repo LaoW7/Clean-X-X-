@@ -1,20 +1,27 @@
 const form = document.querySelector('form');
 const enabled = document.querySelector('#enabled');
+const workMode = document.querySelector('#work-mode');
 const mediaOptions = document.querySelector('#media-options');
+const mediaNote = document.querySelector('#media-note');
 const errorMessage = document.querySelector('#error');
 const latestChanges = new Map();
 let settings = cleanXSettings.defaults;
 
 function render() {
   enabled.checked = settings.enabled;
-  mediaOptions.disabled = !settings.enabled;
+  workMode.checked = settings.workMode;
+  mediaOptions.disabled = !settings.enabled || settings.workMode;
   form.elements.media.value = settings.media;
+  mediaNote.textContent = settings.workMode
+    ? '工作模式已开启。媒体仅在帖子详情中显示。'
+    : '适用于帖子里的图片、GIF 和视频。点开帖子可查看完整媒体。';
 }
 
 async function init() {
   try {
     settings = await cleanXSettings.read();
     enabled.disabled = false;
+    workMode.disabled = false;
     render();
   } catch {
     errorMessage.textContent = '无法读取设置，请重新打开扩展。';
@@ -23,7 +30,7 @@ async function init() {
 
   form.addEventListener('change', async ({ target }) => {
     const name = target.name;
-    const value = target === enabled ? target.checked : target.value;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
     const previousValue = settings[name];
     const change = Symbol();
     latestChanges.set(name, change);

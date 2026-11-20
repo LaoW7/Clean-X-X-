@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "清简 X",
-  "version": "1.0.6",
+  "version": "1.0.8",
   "description": "精简 X 的导航和侧栏，让时间线以文字为主。",
   "minimum_chrome_version": "105",
   "permissions": ["storage"],
@@ -22,7 +22,7 @@
   "content_scripts": [
     {
       "matches": ["https://x.com/*", "https://twitter.com/*"],
-      "css": ["content.css"],
+      "css": ["content.css", "work-mode.css"],
       "js": ["settings.js", "timeline-position.js", "media-thumbnails.js", "content.js"],
       "run_at": "document_start"
     }

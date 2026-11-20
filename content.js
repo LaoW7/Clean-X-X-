@@ -236,11 +236,17 @@
   }
 
   function apply() {
-    const simplifyTimeline = settings.enabled && isTimeline(location.pathname);
-    const mediaMode = simplifyTimeline && settings.media !== 'original' ? settings.media : null;
+    const path = location.pathname;
+    const timeline = isTimeline(path);
+    const workView = settings.workMode && (timeline || isPostDetail(path));
+    const simplified = settings.enabled || workView;
+    const simplifyTimeline = simplified && timeline;
+    const media = workView ? 'hidden' : settings.media;
+    const mediaMode = simplifyTimeline && media !== 'original' ? media : null;
     const previousMedia = root.getAttribute('data-xclean-media');
 
-    root.toggleAttribute('data-xclean-enabled', settings.enabled);
+    root.toggleAttribute('data-xclean-work', workView);
+    root.toggleAttribute('data-xclean-enabled', simplified);
     root.toggleAttribute('data-xclean-text-links', simplifyTimeline);
     if (mediaMode !== previousMedia) {
       if (mediaMode) root.setAttribute('data-xclean-media', mediaMode);
@@ -273,14 +279,20 @@
     }
   }
 
-  trackCleanXTimelinePosition({ enabled: () => settings.enabled, isTimeline, isDetail: isPostDetail, onPageChange: apply });
+  trackCleanXTimelinePosition({
+    enabled: () => settings.enabled || settings.workMode,
+    isTimeline,
+    isDetail: isPostDetail,
+    onPageChange: apply,
+  });
   window.addEventListener('pageshow', apply);
   const changesAtStartup = {};
   cleanXSettings.subscribe((changes) => {
-    if (!changes.enabled && !changes.media) return;
     const values = {};
-    if (changes.enabled) values.enabled = changes.enabled.newValue;
-    if (changes.media) values.media = changes.media.newValue;
+    for (const key of Object.keys(cleanXSettings.defaults)) {
+      if (changes[key]) values[key] = changes[key].newValue;
+    }
+    if (!Object.keys(values).length) return;
     Object.assign(changesAtStartup, values);
     settings = cleanXSettings.normalize({ ...settings, ...values });
     apply();

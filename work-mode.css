@@ -1,0 +1,234 @@
+html[data-xclean-work] {
+  --xclean-work-page: #eef3f8;
+  --xclean-work-paper: #ffffff;
+  --xclean-work-control: #f5f8fb;
+  --xclean-work-hover: #e3edf7;
+  --xclean-work-header: #1a314a;
+  --xclean-work-ink: #1b2e42;
+  --xclean-work-muted: #495f74;
+  --xclean-work-rule: #d3dfeb;
+  --xclean-work-link: #15579e;
+  --xclean-work-mono: "Cascadia Mono", ui-monospace, Consolas, monospace;
+  color-scheme: light !important;
+}
+
+html[data-xclean-work] :is(body, #react-root, #react-root > div, #react-root > div > div) {
+  background-color: var(--xclean-work-page) !important;
+}
+
+html[data-xclean-work] header[role="banner"] :is(
+  h1:has(a[href="/home"]),
+  a[href="/home"][aria-label="X"]:not([data-testid="AppTabBar_Home_Link"])
+) {
+  display: none !important;
+}
+
+html[data-xclean-work] header[role="banner"] nav a:is([href="/home"], [href="/explore"]),
+html[data-xclean-work] header[role="banner"] nav a:is([href="/home"], [href="/explore"]) :is(span, svg) {
+  color: var(--xclean-work-ink) !important;
+}
+
+html[data-xclean-work] header[role="banner"] nav a:is([href="/home"], [href="/explore"]):is(:hover, [aria-current="page"]) {
+  background-color: #dae7f3 !important;
+  border-radius: 8px;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] {
+  background-color: var(--xclean-work-paper) !important;
+  border-color: var(--xclean-work-rule) !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"]::before {
+  content: "技术动态 · TECH FEED";
+  display: block;
+  box-sizing: border-box;
+  padding: 13px 16px;
+  background-color: var(--xclean-work-header);
+  border-block-end: 3px solid #669cbc;
+  color: #f4f8fc;
+  font: 600 14px/1.5 var(--xclean-work-mono);
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] :is(
+  [role="tablist"],
+  div:has(> [role="tablist"]),
+  nav:has([role="tablist"])
+):not([data-testid="toolBar"] *) {
+  background: var(--xclean-work-control) !important;
+  border-color: var(--xclean-work-rule) !important;
+}
+
+/* Pinned-tab controls can have their own dark fill or a carousel gradient. */
+html[data-xclean-work] [data-testid="primaryColumn"] nav:has([role="tablist"]) :is(
+  [data-testid="ScrollSnap-nextButtonWrapper"],
+  [data-testid="ScrollSnap-prevButtonWrapper"],
+  div:has(> :is(button, [role="button"])):not(:has([role="tab"])),
+  :is(button, [role="button"]):not([role="tab"])
+) {
+  background: var(--xclean-work-control) !important;
+  color: var(--xclean-work-muted) !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] nav:has([role="tablist"])
+  :is(button, [role="button"]):not([role="tab"]):hover {
+  background: var(--xclean-work-hover) !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] nav:has([role="tablist"]) [role="tab"] {
+  background: transparent !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] nav:has([role="tablist"]) [role="tab"]:hover {
+  background: var(--xclean-work-hover) !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] nav:has([role="tablist"])
+  :is(button, [role="button"]) svg {
+  color: var(--xclean-work-muted) !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] :is(
+  [role="tab"], [role="tab"] span,
+  h2, h2 span,
+  [data-testid="app-bar-back"], [data-testid="app-bar-back"] svg,
+  [data-testid^="tweetTextarea_"], [data-testid^="tweetTextarea_"] span
+) {
+  color: var(--xclean-work-ink) !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] :is([data-testid="cellInnerDiv"], [data-testid="tweet"]) {
+  border-color: var(--xclean-work-rule) !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] :is(
+  [data-testid="cellInnerDiv"] div:has([data-testid="tweet"]),
+  [data-testid="tweet"] [role="link"]:has([data-testid="User-Name"]),
+  [data-testid="quoteTweet"]
+) {
+  border-color: var(--xclean-work-rule) !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] [data-testid="tweet"] {
+  background-color: var(--xclean-work-paper) !important;
+  box-shadow: inset 3px 0 #e3ecf6;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] [data-testid="tweet"] :is(
+  [data-testid="tweetText"],
+  [data-testid="tweetText"] span,
+  [data-testid="User-Name"],
+  [data-testid="User-Name"] span,
+  [data-testid="socialContext"]
+) {
+  color: var(--xclean-work-ink) !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] [data-testid="tweet"] :is(
+  [data-testid="User-Name"] time,
+  [role="group"] svg,
+  [role="group"] span
+) {
+  color: var(--xclean-work-muted) !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] [data-testid="tweet"] :is(
+  [data-testid="tweetText"] a,
+  [data-testid="tweetText"] a span,
+  [data-xclean-card-link]
+) {
+  color: var(--xclean-work-link) !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] :is(time, pre, code, [data-xclean-card-link]) {
+  font-family: var(--xclean-work-mono) !important;
+}
+
+/* The inline editor has separate surfaces for its shell, text field and toolbar. */
+html[data-xclean-work] [data-testid="primaryColumn"] :is(
+  div:has([data-testid="tweetTextarea_0"]):not(:has(nav, [data-testid="cellInnerDiv"], [data-testid="tweet"])),
+  [data-testid^="tweetTextarea_"],
+  [data-testid="toolBar"],
+  [data-testid="toolBar"] [role="tablist"],
+  [data-testid="toolBar"] div:has(> [role="tablist"])
+):not(:is([role="dialog"], #layers) *) {
+  background: var(--xclean-work-paper) !important;
+  border-color: var(--xclean-work-rule) !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] :is(
+  .public-DraftEditorPlaceholder-inner,
+  [data-testid="toolBar"] svg
+):not(:is([role="dialog"], #layers) *) {
+  color: var(--xclean-work-muted) !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] [data-testid="tweetButtonInline"] {
+  background-color: var(--xclean-work-link) !important;
+  border-color: transparent !important;
+  color: var(--xclean-work-paper) !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] [data-testid="tweetButtonInline"]:is(:disabled, [aria-disabled="true"]) {
+  background-color: var(--xclean-work-hover) !important;
+  color: var(--xclean-work-muted) !important;
+  opacity: 1 !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] [data-testid="tweetButtonInline"] span {
+  color: inherit !important;
+}
+
+/* Let one rounded frame cover the icon and the input together. */
+html[data-xclean-work] :is(
+  [data-testid="sidebarColumn"],
+  [data-testid="sidebarColumn"] div:has(form[role="search"])
+) {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-xclean-work] :is([data-testid="primaryColumn"], [data-testid="sidebarColumn"]) form[role="search"] {
+  background: var(--xclean-work-control) !important;
+  border: 1px solid var(--xclean-work-rule) !important;
+  border-radius: 999px !important;
+  box-sizing: border-box;
+}
+
+html[data-xclean-work] :is([data-testid="primaryColumn"], [data-testid="sidebarColumn"]) form[role="search"]:focus-within {
+  border-color: var(--xclean-work-link) !important;
+  box-shadow: 0 0 0 1px var(--xclean-work-link) !important;
+}
+
+html[data-xclean-work] :is([data-testid="primaryColumn"], [data-testid="sidebarColumn"])
+  form[role="search"] :is(div:has(input), label:has(input), div:has(> svg), input):not(:is([role="listbox"], [id^="typeaheadDropdown"]) *) {
+  background: transparent !important;
+  color: var(--xclean-work-ink) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+html[data-xclean-work] :is([data-testid="primaryColumn"], [data-testid="sidebarColumn"])
+  form[role="search"] input::placeholder {
+  color: var(--xclean-work-muted) !important;
+}
+
+html[data-xclean-work] :is([data-testid="primaryColumn"], [data-testid="sidebarColumn"])
+  form[role="search"] svg:not(:is([role="listbox"], [id^="typeaheadDropdown"]) *) {
+  color: var(--xclean-work-muted) !important;
+}
+
+html[data-xclean-work] :is(
+  [data-testid="chat-button"],
+  [data-testid="chat-button"] :is(button, [role="button"]),
+  [data-slot="xds-dock-window"] :is(button, [role="button"]):has([data-icon="icon-chat"])
+) {
+  background: var(--xclean-work-paper) !important;
+  border-color: var(--xclean-work-rule) !important;
+  color: var(--xclean-work-ink) !important;
+  box-shadow: 0 2px 8px #1b2e4226;
+}
+
+html[data-xclean-work] :is([data-testid="chat-button"], [data-slot="xds-dock-window"]) [data-icon="icon-chat"] {
+  color: var(--xclean-work-link) !important;
+}
