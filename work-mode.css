@@ -90,8 +90,7 @@ html[data-xclean-work] [data-testid="primaryColumn"] nav:has([role="tablist"])
 html[data-xclean-work] [data-testid="primaryColumn"] :is(
   [role="tab"], [role="tab"] span,
   h2, h2 span,
-  [data-testid="app-bar-back"], [data-testid="app-bar-back"] svg,
-  [data-testid^="tweetTextarea_"], [data-testid^="tweetTextarea_"] span
+  [data-testid="app-bar-back"], [data-testid="app-bar-back"] svg
 ) {
   color: var(--xclean-work-ink) !important;
 }
@@ -143,23 +142,45 @@ html[data-xclean-work] [data-testid="primaryColumn"] :is(time, pre, code, [data-
   font-family: var(--xclean-work-mono) !important;
 }
 
-/* The inline editor has separate surfaces for its shell, text field and toolbar. */
+/* The composer can contain a nav for its tools. Stop at timeline cells instead. */
 html[data-xclean-work] [data-testid="primaryColumn"] :is(
-  div:has([data-testid="tweetTextarea_0"]):not(:has(nav, [data-testid="cellInnerDiv"], [data-testid="tweet"])),
+  div:has(:is([data-testid="tweetTextarea_0"], [data-testid="toolBar"]):not(:is([role="dialog"], #layers) *)):not(:has([data-testid="cellInnerDiv"], [data-testid="tweet"])),
+  div:has([data-testid="tweetTextarea_0"]:not(:is([role="dialog"], #layers) *)):not(:has([data-testid="cellInnerDiv"], [data-testid="tweet"])) > div,
   [data-testid^="tweetTextarea_"],
+  nav:has([data-testid="toolBar"]),
   [data-testid="toolBar"],
   [data-testid="toolBar"] [role="tablist"],
   [data-testid="toolBar"] div:has(> [role="tablist"])
-):not(:is([role="dialog"], #layers) *) {
+):not(
+  [role="dialog"], #layers, [role="listbox"], [id^="typeaheadDropdown"],
+  :is([role="dialog"], #layers, [role="listbox"], [id^="typeaheadDropdown"]) *
+) {
   background: var(--xclean-work-paper) !important;
   border-color: var(--xclean-work-rule) !important;
 }
 
+html[data-xclean-work] [data-testid="primaryColumn"]
+  :is([data-testid^="tweetTextarea_"], [data-testid^="tweetTextarea_"] span):not(:is([role="dialog"], #layers) *) {
+  color: var(--xclean-work-ink) !important;
+  caret-color: var(--xclean-work-ink) !important;
+}
+
 html[data-xclean-work] [data-testid="primaryColumn"] :is(
   .public-DraftEditorPlaceholder-inner,
+  [data-testid^="tweetTextarea_"][data-testid$="_label"],
   [data-testid="toolBar"] svg
 ):not(:is([role="dialog"], #layers) *) {
   color: var(--xclean-work-muted) !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] [data-testid="toolBar"]
+  :is(svg:not([fill="none"]), svg [fill]:not([fill="none"])):not(:is([role="dialog"], #layers) *) {
+  fill: currentColor !important;
+}
+
+html[data-xclean-work] [data-testid="primaryColumn"] [data-testid="toolBar"]
+  :is(svg[stroke], svg [stroke]):not([stroke="none"], :is([role="dialog"], #layers) *) {
+  stroke: currentColor !important;
 }
 
 html[data-xclean-work] [data-testid="primaryColumn"] [data-testid="tweetButtonInline"] {
